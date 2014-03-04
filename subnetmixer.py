@@ -5,7 +5,6 @@
 import sys 
 import re
 
-
  
 re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
  
@@ -28,6 +27,37 @@ class Subnet():
 	class SubnetException(Exception):
 		pass	
 
+	def binarydump( self ):
+		""" takes the currently defined subnet and dumps a bunch of binary data, will be handy for later things. """
+		a, b, c, d = self.address.split( "." )
+		a = int( a )
+		b = int( b )
+		c = int( c )
+		d = int( d )
+		address = "{0:b}.{1:b}.{2:b}.{3:b}".format( a, b, c, d )
+		netmask = self.bits * "1" + (32-self.bits) * "0"
+		netmask = netmask[:8]+"."+netmask[8:16]+"."+netmask[16:24]+"."+netmask[24:32]
+		retval = "Address: {}\n".format( address )
+		retval += "\nNetmask: {}".format( netmask )
+		#retval += "\nWildcard: {}".format( wildcard )
+		return retval
+
+	def ipv4toint( self, address ):
+		""" takes an ip address in string form and turns it to an integer 
+		pass str( address )
+		returns false if it's an invalid string
+		"""
+		# test ipv4toint( "192.168.0.2" ) == 3232235522
+		# test ipv4toint( "0.0.0.0" ) == 0
+		# test ipv4toint( "10.2.3.4" ) == 167904004
+		if re_v4.match( address ) != None :
+			# valid address
+			a,b,c,d = address.split( "." )
+			print a,b,c,d
+			intval = ( int( a ) * ( 256 ** 3 ) ) + ( int( b ) * ( 256 ** 2 ) ) + ( int( c ) * 256 ) + int( d )
+			return intval
+		else:
+			return False
 
 	def raiseerror( self, message ):
 		""" raises an error based on this class """
@@ -55,7 +85,10 @@ class Subnet():
 		if self.version == 4:
 			if( re_v4.match( address ) == None ):
 				self.raiseerror( "Address is set as version 4 but incorrectly defined: {}".format( address ) )
-		self.address = address
+				return False
+			else:
+				self.address = address
+				return True
 			
 	def throwv4error( self ):
 		""" throws an error if you're using something other than IPV4 while I'm still developing """
@@ -88,7 +121,7 @@ class Subnet():
 				child.validate( True )
 		return True
 				
-for (n,b) in [ ("192.168.0.2", 2), ("0.0.0.0", 0 ), ("10.2.3.4", 33 ) ]:
+for (n,b) in [ ("255.255.255.1", 24), ("192.168.0.2", 25), ("0.0.0.0", 0 ), ("10.2.3.4", 33 ) ]:
 	print "#" * 50
 	print n, b
 	subnet = Subnet( n, b )
@@ -97,3 +130,8 @@ for (n,b) in [ ("192.168.0.2", 2), ("0.0.0.0", 0 ), ("10.2.3.4", 33 ) ]:
 	except subnet.SubnetException, e:
 		print e
 	print subnet
+
+	print "testing ipv4toint"
+	print subnet.ipv4toint( subnet.address )
+	print "dumping binary"
+	print subnet.binarydump()
