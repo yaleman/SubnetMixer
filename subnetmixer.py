@@ -5,8 +5,7 @@
 import sys 
 import re
 
-class SubnetValidator(Exception):
-	pass
+
  
 re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
  
@@ -24,15 +23,20 @@ class Subnet():
 		self.set_address( address )
 		self.bits = bits
 		self.children = {}
-		
+
 
 	def __repr__( self ):
 		""" should return a CIDR representation of the subnet """
 		return "{}/{}".format( self.address, self.bits )
 	
+	class SubnetException(Exception):
+		
+		pass	
+
+
 	def raiseerror( self, message ):
 		""" raises an error based on this class """
-		raise SubnetValidator( { 'message' : message } )
+		raise self.SubnetException( { 'message' : message } )
 
 	def set_address( self, address ):
 		""" sets the address field, also requests recalculation of the integer values of the field 
@@ -80,6 +84,6 @@ for (n,b) in [ ("192.168.0.2", 2), ("0.0.0.0", 0 ), ("10.2.3.4", 33 ) ]:
 	subnet = Subnet( n, b )
 	try:
 		print subnet.validate()
-	except SubnetValidator, e:
+	except subnet.SubnetException, e:
 		print e
 	print subnet
