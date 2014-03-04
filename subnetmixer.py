@@ -29,18 +29,33 @@ class Subnet():
 
 	def binarydump( self ):
 		""" takes the currently defined subnet and dumps a bunch of binary data, will be handy for later things. """
-		a, b, c, d = self.address.split( "." )
-		a = int( a )
-		b = int( b )
-		c = int( c )
-		d = int( d )
-		address = "{0:b}.{1:b}.{2:b}.{3:b}".format( a, b, c, d )
-		netmask = self.bits * "1" + (32-self.bits) * "0"
-		netmask = netmask[:8]+"."+netmask[8:16]+"."+netmask[16:24]+"."+netmask[24:32]
-		retval = "Address: {}\n".format( address )
-		retval += "\nNetmask: {}".format( netmask )
-		#retval += "\nWildcard: {}".format( wildcard )
-		return retval
+		# handy ref http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp?ipAddress=10.2.3.4&cidr=32
+		address = bin( self.ipv4toint( self.address ) )
+		
+		#calculate the binary netmask
+		x = 32
+		netmask = 0
+		while( x > 32 - self.bits ):
+			x = x - 1
+			netmask = 2 ** x + netmask
+		netmask = bin( int( netmask ) )
+		
+		# calculate the wildcard
+		x = 0
+		wildcard = 0
+		while( x < ( 32 - self.bits ) ):
+			wildcard = 2 ** x + wildcard
+			x = x + 1
+			
+		wildcard = bin( int( wildcard ) )
+		networkaddress = address << netmask
+		
+		print "Address: \t{}".format( address )
+		print "Netmask: \t{}".format( netmask )
+		print "Wildcard: \t{}".format( wildcard )
+		print "Netaddrs: \t{}".format( networkaddress )
+
+		return None
 
 	def ipv4toint( self, address ):
 		""" takes an ip address in string form and turns it to an integer 
@@ -53,24 +68,6 @@ class Subnet():
 		if re_v4.match( address ) != None :
 			# valid address
 			a,b,c,d = address.split( "." )
-			print a,b,c,d
-			intval = ( int( a ) * ( 256 ** 3 ) ) + ( int( b ) * ( 256 ** 2 ) ) + ( int( c ) * 256 ) + int( d )
-			return intval
-		else:
-			return False
-
-	def ipv4toint( self, address ):
-		""" takes an ip address in string form and turns it to an integer 
-		pass str( address )
-		returns false if it's an invalid string
-		"""
-		# test ipv4toint( "192.168.0.2" ) == 3232235522
-		# test ipv4toint( "0.0.0.0" ) == 0
-		# test ipv4toint( "10.2.3.4" ) == 167904004
-		if re_v4.match( address ) != None :
-			# valid address
-			a,b,c,d = address.split( "." )
-			print a,b,c,d
 			intval = ( int( a ) * ( 256 ** 3 ) ) + ( int( b ) * ( 256 ** 2 ) ) + ( int( c ) * 256 ) + int( d )
 			return intval
 		else:
@@ -138,7 +135,7 @@ class Subnet():
 				child.validate( True )
 		return True
 				
-for (n,b) in [ ("255.255.255.1", 24), ("192.168.0.2", 25), ("0.0.0.0", 0 ), ("10.2.3.4", 33 ) ]:
+for (n,b) in [ ("255.255.255.1", 24), ("192.168.0.2", 25), ("0.0.0.0", 0 ), ("10.2.3.4", 32 ) ]:
 	print "#" * 50
 	print n, b
 	subnet = Subnet( n, b )
@@ -150,9 +147,6 @@ for (n,b) in [ ("255.255.255.1", 24), ("192.168.0.2", 25), ("0.0.0.0", 0 ), ("10
 
 	print "testing ipv4toint"
 	print subnet.ipv4toint( subnet.address )
-<<<<<<< HEAD
-	
-=======
 	print "dumping binary"
 	print subnet.binarydump()
->>>>>>> 2e82309d5bd057d4771a446456aa2ac703bf4db5
+
