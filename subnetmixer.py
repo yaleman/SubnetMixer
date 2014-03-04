@@ -29,6 +29,23 @@ class Subnet():
 		pass	
 
 
+	def ipv4toint( self, address ):
+		""" takes an ip address in string form and turns it to an integer 
+		pass str( address )
+		returns false if it's an invalid string
+		"""
+		# test ipv4toint( "192.168.0.2" ) == 3232235522
+		# test ipv4toint( "0.0.0.0" ) == 0
+		# test ipv4toint( "10.2.3.4" ) == 167904004
+		if re_v4.match( address ) != None :
+			# valid address
+			a,b,c,d = address.split( "." )
+			print a,b,c,d
+			intval = ( int( a ) * ( 256 ** 3 ) ) + ( int( b ) * ( 256 ** 2 ) ) + ( int( c ) * 256 ) + int( d )
+			return intval
+		else:
+			return False
+
 	def raiseerror( self, message ):
 		""" raises an error based on this class """
 		#raise self.SubnetException( { 'message' : "Exception: "+message } )
@@ -55,7 +72,10 @@ class Subnet():
 		if self.version == 4:
 			if( re_v4.match( address ) == None ):
 				self.raiseerror( "Address is set as version 4 but incorrectly defined: {}".format( address ) )
-		self.address = address
+				return False
+			else:
+				self.address = address
+				return True
 			
 	def throwv4error( self ):
 		""" throws an error if you're using something other than IPV4 while I'm still developing """
@@ -97,3 +117,7 @@ for (n,b) in [ ("192.168.0.2", 2), ("0.0.0.0", 0 ), ("10.2.3.4", 33 ) ]:
 	except subnet.SubnetException, e:
 		print e
 	print subnet
+
+	print "testing ipv4toint"
+	print subnet.ipv4toint( subnet.address )
+	
