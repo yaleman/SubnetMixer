@@ -15,11 +15,7 @@ class Subnet():
 		pass str( address ), int( bitsize ) and int( version )
 		"""
 		# only supports version 4 now
-		if( version != 4 ):
-			self.throwv4error()
-		else:
-			self.version = version
-		
+		self.set_version( version )
 		self.set_address( address )
 		self.bits = bits
 		self.children = {}
@@ -30,14 +26,28 @@ class Subnet():
 		return "{}/{}".format( self.address, self.bits )
 	
 	class SubnetException(Exception):
-		
 		pass	
 
 
 	def raiseerror( self, message ):
 		""" raises an error based on this class """
-		raise self.SubnetException( { 'message' : message } )
+		#raise self.SubnetException( { 'message' : "Exception: "+message } )
+		raise self.SubnetException( "Exception: {}".format( message ) )
 
+	def set_version( self, version ):
+		""" sets the version number, checks if it's 4 - for now only IPV4 is supported.
+		>>> subnet.set_version( 4 )
+		True
+		>>> subnet.set_version( 6 )
+		False
+		"""
+		if( version != 4 ):
+			self.throwv4error()
+			return False
+		else:
+			self.version = version
+			return True
+			
 	def set_address( self, address ):
 		""" sets the address field, also requests recalculation of the integer values of the field 
 		pass str( address )
