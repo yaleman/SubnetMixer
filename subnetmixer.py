@@ -31,6 +31,7 @@ class Subnet():
 		return "{}/{}".format( self.address, self.bits )
 	
 	def raiseerror( self, message ):
+		""" raises an error based on this class """
 		raise SubnetValidator( { 'message' : message } )
 
 	def set_address( self, address ):
