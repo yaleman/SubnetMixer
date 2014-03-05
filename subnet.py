@@ -48,14 +48,15 @@ class Subnet():
 			x = x + 1
 			
 		wildcard = bin( int( wildcard ) )
-		networkaddress = address << netmask
+		#networkaddress = address << netmask
+		networkaddress = "in development"
 		
-		print "Address: \t{}".format( address )
-		print "Netmask: \t{}".format( netmask )
-		print "Wildcard: \t{}".format( wildcard )
-		print "Netaddrs: \t{}".format( networkaddress )
+		retval = "Address: \t{}\n".format( address )
+		retval += "Netmask: \t{}\n".format( netmask )
+		retval += "Wildcard: \t{}\n".format( wildcard )
+		retval += "Netaddrs: \t{}\n".format( networkaddress )
 
-		return None
+		return retval
 
 	def ipv4toint( self, address ):
 		""" takes an ip address in string form and turns it to an integer 
