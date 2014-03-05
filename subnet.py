@@ -31,7 +31,8 @@ class Subnet():
 		""" takes the currently defined subnet and dumps a bunch of binary data, will be handy for later things. """
 		# handy ref http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp?ipAddress=10.2.3.4&cidr=32
 		address = BitArray( self.ipv4toint( self.address ) )
-		
+		while( len ( address ) < 32 ):
+			address.prepend( BitArray( bin="0" ) )
 		#calculate the binary netmask
 		x = 32
 		netmask = 0
@@ -39,22 +40,15 @@ class Subnet():
 			x = x - 1
 			netmask = 2 ** x + netmask
 		netmask = BitArray( netmask )
+		wildcard = netmask
+		wildcard.invert()
+
+		networkaddress = address * netmask
 		
-		# calculate the wildcard
-		x = 0
-		wildcard = 0
-		while( x < ( 32 - self.bits ) ):
-			wildcard = 2 ** x + wildcard
-			x = x + 1
-			
-		wildcard = BitArray( wildcard )
-		#networkaddress = address << netmask
-		networkaddress = "in development"
-		
-		retval = "Address: \t{}\n".format( address.bin )
-		retval += "Netmask: \t{}\n".format( netmask.bin )
-		retval += "Wildcard: \t{}\n".format( wildcard.bin )
-		retval += "Netaddrs: \t{}\n".format( networkaddress )
+		retval = "Address: \t{}\n".format( address.read( 'bin:32' ) )
+		retval += "Netmask: \t{}\n".format( netmask.read( 'bin:32' ) )
+		retval += "Wildcard: \t{}\n".format( wildcard.read( 'bin:32' ) )
+		retval += "Netaddrs: \t{}\n".format( networkaddress.read( 'bin:32' ) )
 
 		return retval
 
