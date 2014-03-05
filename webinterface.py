@@ -10,7 +10,7 @@ app = Flask(__name__)
 @app.route( "/" )
 def index():
 	retval = "<pre>"
-	for (n,b) in [ ("255.255.255.1", 24), ("192.168.0.2", 25), ("0.0.0.0", 0 ), ("10.2.3.4", 32 ) ]:
+	for (n,b) in [ ("123.234.99.21", 24), ("192.168.0.2", 25), ("10.2.3.4", 32 ) ]:
 		subnet = Subnet( n, b )
 
 		retval +=  "#" * 50 + "\n"
@@ -23,8 +23,11 @@ def index():
 		#retval += "{}\n".format( str( subnet.ipv4toint( subnet.address ) ) )
 		retval += "dumping binary\n"
 		retval += "{}\n".format( str(  subnet.binarydump() ) ) 
+
 	return retval
 
 
 if __name__ == "__main__":
-	app.run()
+	app.run( debug=True )
+
+	#("0.0.0.0", 0 ), 
