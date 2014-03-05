@@ -135,18 +135,5 @@ class Subnet():
 				child.validate( True )
 		return True
 				
-for (n,b) in [ ("255.255.255.1", 24), ("192.168.0.2", 25), ("0.0.0.0", 0 ), ("10.2.3.4", 32 ) ]:
-	print "#" * 50
-	print n, b
-	subnet = Subnet( n, b )
-	try:
-		print subnet.validate()
-	except subnet.SubnetException, e:
-		print e
-	print subnet
 
-	print "testing ipv4toint"
-	print subnet.ipv4toint( subnet.address )
-	print "dumping binary"
-	print subnet.binarydump()
 
