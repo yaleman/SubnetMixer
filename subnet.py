@@ -4,7 +4,7 @@
 # only works with ipv4 for now
 import sys 
 import re
-
+from bitstring import BitArray, BitStream
  
 re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
  
@@ -30,7 +30,7 @@ class Subnet():
 	def binarydump( self ):
 		""" takes the currently defined subnet and dumps a bunch of binary data, will be handy for later things. """
 		# handy ref http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp?ipAddress=10.2.3.4&cidr=32
-		address = bin( self.ipv4toint( self.address ) )
+		address = BitArray( self.ipv4toint( self.address ) )
 		
 		#calculate the binary netmask
 		x = 32
@@ -38,7 +38,7 @@ class Subnet():
 		while( x > 32 - self.bits ):
 			x = x - 1
 			netmask = 2 ** x + netmask
-		netmask = bin( int( netmask ) )
+		netmask = BitArray( netmask )
 		
 		# calculate the wildcard
 		x = 0
@@ -47,13 +47,13 @@ class Subnet():
 			wildcard = 2 ** x + wildcard
 			x = x + 1
 			
-		wildcard = bin( int( wildcard ) )
+		wildcard = BitArray( wildcard )
 		#networkaddress = address << netmask
 		networkaddress = "in development"
 		
-		retval = "Address: \t{}\n".format( address )
-		retval += "Netmask: \t{}\n".format( netmask )
-		retval += "Wildcard: \t{}\n".format( wildcard )
+		retval = "Address: \t{}\n".format( address.bin )
+		retval += "Netmask: \t{}\n".format( netmask.bin )
+		retval += "Wildcard: \t{}\n".format( wildcard.bin )
 		retval += "Netaddrs: \t{}\n".format( networkaddress )
 
 		return retval
