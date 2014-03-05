@@ -8,7 +8,7 @@ from bitstring import BitArray, BitStream, Bits
  
 re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
  
-class Subnet():
+class Subnet( object ):
 	def __init__( self, address, bits, version=4 ):
 		""" define a subnet 
 		pass str( address ), int( bitsize ) and int( version )
@@ -19,7 +19,6 @@ class Subnet():
 		self.bits = bits
 		self.children = {}
 
-
 	def __repr__( self ):
 		""" should return a CIDR representation of the subnet """
 		return "{}/{}".format( self.address, self.bits )
@@ -27,32 +26,40 @@ class Subnet():
 	class SubnetException(Exception):
 		pass	
 
+	def bits2integer( self, bits ):
+		return "{}.{}.{}.{}".format( bits[:8].uint,  bits[8:16].uint, bits[16:24].uint, bits[24:32].uint )
+
+	def binary_netmask( self, reset=False ):
+		netmask_string = ( "1" * self.bits) + ( ( 32 - self.bits ) * "0" )
+		self.netmask = BitArray( bin=netmask_string )
+		self.flags['netmask'] = True
+		return self.netmask
+	def binary_wildcard( self, reset=False ):
+		wildcard = self.binary_netmask().copy()
+		wildcard.invert()
+		self.wildcard = wildcard
+		return wildcard
+	def binary_address( self ):
+		a,b,c,d = self.address.split( "." )
+		address = (BitArray( uint=int( a ), length=8 ).bin + BitArray( uint=int( b ), length=8 ).bin + 
+			BitArray( uint=int( c ), length=8 ).bin + BitArray( uint=int( d ), length=8 ).bin) 
+		return BitArray( bin=address )
+
+	def binary_network_address( self ):
+		return self.binary_address() & self.binary_netmask()
+
 	def binarydump( self ):
 		""" takes the currently defined subnet and dumps a bunch of binary data, will be handy for later things. """
 		# handy ref http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp?ipAddress=10.2.3.4&cidr=32
 		retval = ""		
-		a,b,c,d = self.address.split( "." )
-		address = BitArray( bin=(BitArray( uint=int( a ), length=8 ).bin + BitArray( uint=int( b ), length=8 ).bin + 
-			BitArray( uint=int( c ), length=8 ).bin + BitArray( uint=int( d ), length=8 ).bin) )
 		
-		# calculate the binary netmask
-		netmask_string = ( "1" * self.bits) + ( ( 32 - self.bits ) * "0" )
-		netmask = BitArray( bin=netmask_string )
-		# calculate the binary wildcard
-		
-		#wildcard = BitArray( bin=netmask_string )
-		wildcard = netmask.copy()
-		wildcard.invert()
-	
 
-		networkaddress = address & netmask
 		
-		retval = "Address: \t{}\n".format( address.bin )		
-		retval += "Netaddrs: \t{}\n".format( networkaddress.bin )
-		retval += "Netmask: \t{}\n".format( netmask.bin)
-		retval += "Wildcard: \t{}\n".format( wildcard.bin )
-		netmask_ints = "{}.{}.{}.{}".format( netmask[:8].uint, netmask[8:16].uint, netmask[16:24].uint, netmask[24:32].uint )
-		retval += "Netmask: \t{}\n".format( netmask_ints )
+		retval = "Address: \t{}\n".format( self.binary_address().bin )		
+		retval += "Netaddrs: \t{}\n".format( self.binary_network_address().bin )
+		retval += "Netmask: \t{}\n".format( self.binary_netmask().bin )
+		retval += "Wildcard: \t{}\n".format( self.binary_wildcard().bin )
+		retval += "Netmask: \t{}\n".format( self.bits2integer( self.binary_netmask() ) )
 
 		return retval
 
