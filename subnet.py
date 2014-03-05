@@ -30,25 +30,28 @@ class Subnet():
 	def binarydump( self ):
 		""" takes the currently defined subnet and dumps a bunch of binary data, will be handy for later things. """
 		# handy ref http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp?ipAddress=10.2.3.4&cidr=32
-		address = BitArray( self.ipv4toint( self.address ) )
-		while( len ( address ) < 32 ):
-			address.prepend( BitArray( bin="0" ) )
-		#calculate the binary netmask
-		x = 32
-		netmask = 0
-		while( x > 32 - self.bits ):
-			x = x - 1
-			netmask = 2 ** x + netmask
-		netmask = BitArray( netmask )
-		wildcard = netmask
-		wildcard.invert()
-
-		networkaddress = address * netmask
+		retval = ""		
+		a,b,c,d = self.address.split( "." )
+		address = BitArray( bin=(BitArray( uint=int( a ), length=8 ).bin + BitArray( uint=int( b ), length=8 ).bin + 
+			BitArray( uint=int( c ), length=8 ).bin + BitArray( uint=int( d ), length=8 ).bin) )
 		
-		retval = "Address: \t{}\n".format( address.read( 'bin:32' ) )
-		retval += "Netmask: \t{}\n".format( netmask.read( 'bin:32' ) )
-		retval += "Wildcard: \t{}\n".format( wildcard.read( 'bin:32' ) )
-		retval += "Netaddrs: \t{}\n".format( networkaddress.read( 'bin:32' ) )
+		# calculate the binary netmask
+		netmask_string = ( "1" * self.bits) + ( ( 32 - self.bits ) * "0" )
+		netmask = BitArray( bin=netmask_string )
+		# calculate the binary wildcard
+		
+		#wildcard = BitArray( bin=netmask_string )
+		wildcard = netmask.copy()
+		wildcard.invert()
+	
+
+		networkaddress = address & netmask
+		
+		retval = "Address: \t{}\n".format( address.bin )		
+		retval += "Netaddrs: \t{}\n".format( networkaddress.bin )
+		retval += "Netmask: \t{}\n".format( netmask.bin)
+		retval += "Wildcard: \t{}\n".format( wildcard.bin )
+
 
 		return retval
 
