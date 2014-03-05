@@ -32,7 +32,6 @@ class Subnet( object ):
 	def binary_netmask( self, reset=False ):
 		netmask_string = ( "1" * self.bits) + ( ( 32 - self.bits ) * "0" )
 		self.netmask = BitArray( bin=netmask_string )
-		self.flags['netmask'] = True
 		return self.netmask
 	def binary_wildcard( self, reset=False ):
 		wildcard = self.binary_netmask().copy()
