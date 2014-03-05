@@ -2,10 +2,21 @@
 
 from bitstring import BitArray, BitStream
 
-slash24 = BitStream( "11111111111111111111111100000000" )
-
+slash24 = BitStream( bin="11111111111111111111111100000000" )
+slash0 = BitStream( bin=32*"0" )
+address_192 = BitStream( bin="00001010000000100000001100000100" )
+print "slash24"
 print slash24
 print slash24.bin
+print "slash0"
+print slash0
+print slash0.bin
+print "192"
+print "Address: {}".format( address_192 )
+print "Address:\n{}".format( address_192.bin )
+network = address_192 & slash24
+print "Add * slash24: \n{}".format( network.bin )
+
 """
 ##################################################
 255.255.255.1/24
