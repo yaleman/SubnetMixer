@@ -4,7 +4,7 @@
 # only works with ipv4 for now
 import sys 
 import re
-from bitstring import BitArray, BitStream
+from bitstring import BitArray, BitStream, Bits
  
 re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
  
@@ -51,7 +51,8 @@ class Subnet():
 		retval += "Netaddrs: \t{}\n".format( networkaddress.bin )
 		retval += "Netmask: \t{}\n".format( netmask.bin)
 		retval += "Wildcard: \t{}\n".format( wildcard.bin )
-
+		netmask_ints = "{}.{}.{}.{}".format( netmask[:8].uint, netmask[8:16].uint, netmask[16:24].uint, netmask[24:32].uint )
+		retval += "Netmask: \t{}\n".format( netmask_ints )
 
 		return retval
 
