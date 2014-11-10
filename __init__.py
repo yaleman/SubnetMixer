@@ -32,14 +32,19 @@ class Subnet( object ):
 		pass	
 
 	def bits2integer( self, bits ):
+		""" converts the binary interpretation of the address into a dotted integer interpretation 
+		currently only works with Bits() objects
+		"""
 		return "{}.{}.{}.{}".format( bits[:8].uint,  bits[8:16].uint, bits[16:24].uint, bits[24:32].uint )
 
 	def binary_netmask( self, reset=False ):
+		""" takes the current netmask and converts it to a binary mask """
 		netmask_string = ( "1" * self.bits) + ( ( 32 - self.bits ) * "0" )
 		self.netmask = BitArray( bin=netmask_string )
 		return self.netmask
 
 	def binary_wildcard( self, reset=False ):
+		""" returns the binary interpretation of the wilcard mask """
 		wildcard = self.binary_netmask().copy()
 		wildcard.invert()
 		self.wildcard = wildcard
@@ -55,6 +60,7 @@ class Subnet( object ):
 		return BitArray( bin=address )
 
 	def binary_network_address( self ):
+		""" returns the binary network address """
 		return self.binary_address() & self.binary_netmask()
 
 	def binarydump( self ):
