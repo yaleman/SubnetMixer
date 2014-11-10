@@ -18,6 +18,7 @@ class Subnet( object ):
 		self.set_address( address )
 		self.bits = bits
 		self.children = {}
+		self.validate()
 
 	def __repr__( self ):
 		""" should return a CIDR representation of the subnet """
@@ -33,15 +34,20 @@ class Subnet( object ):
 		netmask_string = ( "1" * self.bits) + ( ( 32 - self.bits ) * "0" )
 		self.netmask = BitArray( bin=netmask_string )
 		return self.netmask
+
 	def binary_wildcard( self, reset=False ):
 		wildcard = self.binary_netmask().copy()
 		wildcard.invert()
 		self.wildcard = wildcard
 		return wildcard
+
 	def binary_address( self ):
+		""" return a binary representation of the network address """
 		a,b,c,d = self.address.split( "." )
-		address = (BitArray( uint=int( a ), length=8 ).bin + BitArray( uint=int( b ), length=8 ).bin + 
-			BitArray( uint=int( c ), length=8 ).bin + BitArray( uint=int( d ), length=8 ).bin) 
+		address = ( BitArray( uint=int( a ), length=8 ).bin + \
+					BitArray( uint=int( b ), length=8 ).bin + \
+					BitArray( uint=int( c ), length=8 ).bin + \
+					BitArray( uint=int( d ), length=8 ).bin ) 
 		return BitArray( bin=address )
 
 	def binary_network_address( self ):
@@ -51,8 +57,6 @@ class Subnet( object ):
 		""" takes the currently defined subnet and dumps a bunch of binary data, will be handy for later things. """
 		# handy ref http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp?ipAddress=10.2.3.4&cidr=32
 		retval = ""		
-		
-
 		
 		retval = "Address: \t{}\n".format( self.binary_address().bin )		
 		retval += "Netaddrs: \t{}\n".format( self.binary_network_address().bin )
@@ -140,5 +144,9 @@ class Subnet( object ):
 				child.validate( True )
 		return True
 				
-
-
+if __name__ == '__main__':
+	subnet = Subnet( "131.242.34.44", 32 )
+	print subnet.binary_wildcard()
+	print subnet.binary_address()
+	print subnet.binary_network_address()
+	print subnet
