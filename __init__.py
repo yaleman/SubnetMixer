@@ -2,12 +2,16 @@
 # written by James Hodgkinson
 # this should handle subnets and build a structure which makes sense to people using Riverbed Cascade groupings
 # only works with ipv4 for now
+
+# requires bitstring
 import sys 
 import re
 from bitstring import BitArray, BitStream, Bits
  
 re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
- 
+import logging
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
 class Subnet( object ):
 	def __init__( self, address, bits, version=4 ):
 		""" define a subnet 
@@ -112,6 +116,33 @@ class Subnet( object ):
 			else:
 				self.address = address
 				return True
+				
+	def set_mask( self, newmask ):
+		""" sets a new subnet mask, and adjusts the address to the network address to match the new mask. 
+		examples
+		192.168.0.152/32 => 192.168.0.0/24
+		10.2.3.0/24 => 10.0.0.0/8
+		1.2.3.0/24 => 1.2.3.0/32
+		Tempted to throw an error when setting to a tighter mask, but hey... people do these things.
+		"""
+		if self.bits < newmask:
+			logging.info( "New mask is tighter, be aware." )
+		logging.debug( "Seting netmask to : {}".format( newmask ) )
+		logging.debug( "Current address:    {}".format( self.binary_address() ) )
+		self.bits = newmask
+		logging.debug( "New binary netmask: {}".format( self.binary_netmask() ) )
+		newaddress =  self.binary_address() & self.binary_netmask()
+		logging.debug( "New binary address: {}".format( newaddress ) )
+
+		logging.debug( "Hex: {}".format( newaddress.hex ) )
+		string_address = []
+		# iterate through the string in two-character chunks
+		for i in range( 4 ):
+			# slice to get hex, convert to string, then to an integer, then to a string. :)
+			string_address.append( str( int( str( newaddress.hex )[(0+i*2):(2+i*2)], 16 ) ) ) 
+		self.address = ".".join( string_address )
+		logging.debug( "New address: {}".format( self.address ) )
+		self.validate() # just to make sure
 			
 	def throwv4error( self ):
 		""" throws an error if you're using something other than IPV4 while I'm still developing """
@@ -146,7 +177,12 @@ class Subnet( object ):
 				
 if __name__ == '__main__':
 	subnet = Subnet( "131.242.34.44", 32 )
-	print subnet.binary_wildcard()
-	print subnet.binary_address()
-	print subnet.binary_network_address()
-	print subnet
+	logging.debug( subnet.binary_wildcard() )
+	logging.debug( subnet.binary_address() )
+	logging.debug( subnet.binary_network_address() )
+	logging.debug( subnet.binarydump() )
+	logging.debug( subnet )
+	subnet.set_mask( 24 )
+	logging.debug( subnet )
+	subnet.set_mask( 32 )
+	logging.debug( subnet )
