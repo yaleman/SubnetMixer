@@ -10,7 +10,6 @@ from bitstring import BitArray, BitStream, Bits
  
 re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
 import logging
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 class Subnet( object ):
 	def __init__( self, address, bits, version=4 ):
