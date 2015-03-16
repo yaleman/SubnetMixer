@@ -12,15 +12,16 @@ re_v4 = re.compile( "[\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3}" )
 import logging
 
 class Subnet( object ):
-	def __init__( self, address, bits, version=4 ):
+	def __init__( self, address, bits, description="", version=4 ):
 		""" define a subnet 
 		pass str( address ), int( bitsize ) and int( version )
 		"""
 		# only supports version 4 now
+		self.description = description
 		self.set_version( version )
 		self.set_address( address )
 		self.bits = bits
-		self.children = {}
+		self.children = []
 		self.validate()
 
 	def __repr__( self ):
@@ -132,21 +133,21 @@ class Subnet( object ):
 		"""
 		if self.bits < newmask:
 			logging.info( "New mask is tighter, be aware." )
-		logging.debug( "Seting netmask to : {}".format( newmask ) )
-		logging.debug( "Current address:    {}".format( self.binary_address() ) )
+		print( "Seting netmask to : {}".format( newmask ) )
+		print( "Current address:    {}".format( self.binary_address() ) )
 		self.bits = newmask
-		logging.debug( "New binary netmask: {}".format( self.binary_netmask() ) )
+		print( "New binary netmask: {}".format( self.binary_netmask() ) )
 		newaddress =  self.binary_address() & self.binary_netmask()
-		logging.debug( "New binary address: {}".format( newaddress ) )
+		print( "New binary address: {}".format( newaddress ) )
 
-		logging.debug( "Hex: {}".format( newaddress.hex ) )
+		print( "Hex: {}".format( newaddress.hex ) )
 		string_address = []
 		# iterate through the string in two-character chunks
 		for i in range( 4 ):
 			# slice to get hex, convert to string, then to an integer, then to a string. :)
 			string_address.append( str( int( str( newaddress.hex )[(0+i*2):(2+i*2)], 16 ) ) ) 
 		self.address = ".".join( string_address )
-		logging.debug( "New address: {}".format( self.address ) )
+		print( "New address: {}".format( self.address ) )
 		self.validate() # just to make sure
 			
 	def throwv4error( self ):
@@ -179,15 +180,53 @@ class Subnet( object ):
 			for child in children:
 				child.validate( True )
 		return True
-				
+	
+	def can_be_child( self, newnet, add=False ):
+		""" give it a subnet object and test if it'll fit within 
+			if add is True, automatically add to slot """
+		
+		if( newnet in self.children ): 	# if it already exists, return True - this doesn't work with
+										# really complex subnets, just new ones
+			return True
+		if( newnet.bits <= self.bits ):	# if it's a larger space or the same thing, say no
+			return False
+
+		# before checking children, then test if the masks match
+		masked_me = self.binary_netmask() & self.binary_address()
+		masked_address = self.binary_netmask() & newnet.binary_address()
+		if(  masked_address == masked_me ):
+			if len( self.children ) > 0:	# check the children
+				for child in self.children:
+					if child.can_be_child( newnet, add ) == True:
+						return True
+				# if no matching children, then false
+				return False	
+			elif len( self.children ) == 0 and add == True:
+				# add the thing
+				self.children.append( newnet )
+			return True
+		# finally say no
+		return False
+	
+	def print_tree( self, depth=0 ):
+		retval = "+{}{}\n".format( depth*'-', self )
+		if( len( self.children ) > 0 ):
+			for child in self.children:
+				retval += child.print_tree( depth+1 )
+		return retval
+						
 if __name__ == '__main__':
-	subnet = Subnet( "131.242.34.44", 32 )
-	logging.debug( subnet.binary_wildcard() )
-	logging.debug( subnet.binary_address() )
-	logging.debug( subnet.binary_network_address() )
-	logging.debug( subnet.binarydump() )
-	logging.debug( subnet )
+	"""subnet = Subnet( "131.242.34.44", 32 )
+	print( subnet.binary_wildcard() )
+	print( subnet.binary_address() )
+	print( subnet.binary_network_address() )
+	print( subnet.binarydump() )
+	print( subnet )
 	subnet.set_mask( 24 )
-	logging.debug( subnet )
+	print( subnet )
 	subnet.set_mask( 32 )
-	logging.debug( subnet )
+	print( subnet )
+	print( subnet.get_bits() > 24 )"""
+	x = Subnet( "0.0.0.0", 0 )
+	print x.can_be_child( Subnet( "10.2.3.4", 32 ) )
+	print x.can_be_child( Subnet( "11.2.3.4", 32 ) )
